@@ -6,7 +6,6 @@ node_modules/
 
 
 adex-server
-adexchange-db
 # Testing
 coverage/
 *.lcov

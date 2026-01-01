@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 
 // Demo advertiser ID (in production, this would come from auth)
-const DEMO_ADVERTISER_ID = "a0000000-0000-0000-0000-000000000001";
+const DEMO_ADVERTISER_ID = "ff2c0776-a69d-4b79-9c29-8bf722d2719e";
 
 export async function GET(request: NextRequest) {
   try {
