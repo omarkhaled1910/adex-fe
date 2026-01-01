@@ -7,13 +7,8 @@ import {
   TrendingUp,
   Zap,
   Globe,
-  Users,
   DollarSign,
-  Clock,
   MousePointer,
-  CheckCircle2,
-  AlertCircle,
-  RefreshCw,
   Server as ServerIcon,
 } from "lucide-react";
 import {

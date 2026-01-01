@@ -1,0 +1,18 @@
+services:
+  web:
+    build: ./nextjs
+    ports:
+      - "3000:3000"
+
+  api:
+    build: ./nestjs
+    ports:
+      - "3001:3001"
+
+  db:
+    image: postgres:16
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

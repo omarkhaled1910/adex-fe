@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
+import { Providers } from "@/lib/providers/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,9 +17,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="min-h-screen bg-background antialiased">
-        <div className="grid-pattern fixed inset-0 pointer-events-none" />
-        <main className="relative z-10">{children}</main>
-        <Toaster />
+        <Providers>
+          <div className="grid-pattern fixed inset-0 pointer-events-none" />
+          <main className="relative z-10">{children}</main>
+          <Toaster />
+        </Providers>
       </body>
     </html>
   );
