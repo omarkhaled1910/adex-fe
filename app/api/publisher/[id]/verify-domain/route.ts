@@ -4,10 +4,10 @@ import { query } from "@/lib/db";
 // POST /api/publisher/[id]/verify-domain - Verify domain ownership
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Get publisher with verification token
     const publishers = await query(
@@ -71,10 +71,10 @@ export async function POST(
 // GET /api/publisher/[id]/verify-domain - Get verification status
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const publishers = await query(
       `SELECT id, domain, domain_verified, verified_at, verification_token FROM publishers WHERE id = $1`,

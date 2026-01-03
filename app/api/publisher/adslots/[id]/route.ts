@@ -17,11 +17,11 @@ async function getPublisherIdFromRequest(request: NextRequest): Promise<string> 
 // GET /api/publisher/adslots/[id] - Get specific ad slot
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const publisherId = await getPublisherIdFromRequest(request);
-    const { id } = params;
+    const { id } = await params;
 
     const result = await query(
       `SELECT * FROM ad_slots WHERE id = $1 AND publisher_id = $2`,
@@ -45,11 +45,11 @@ export async function GET(
 // PATCH /api/publisher/adslots/[id] - Update ad slot
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const publisherId = await getPublisherIdFromRequest(request);
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { floor_price, status } = body;
 
