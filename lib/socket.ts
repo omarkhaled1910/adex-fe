@@ -52,7 +52,7 @@ export interface Auction {
   adSlotType?: string;
   floorPrice: number;
   bids: Bid[];
-  status: "active" | "completed" | "expired" | "grace_period";
+  status: "active" | "completed" | "expired" | "grace_period" | "completing";
   winner?: Bid;
   createdAt: number;
   completedAt?: number;
