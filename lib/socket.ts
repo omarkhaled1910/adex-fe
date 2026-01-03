@@ -48,6 +48,7 @@ export interface AuctionMetadata {
 export interface Auction {
   id: string;
   publisherId: string;
+  domain?: string; // Publisher domain for display (e.g., "reddit.com")
   adSlotId: string;
   adSlotType?: string;
   floorPrice: number;

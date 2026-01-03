@@ -100,7 +100,7 @@ export default function Dashboard() {
     console.log("handleReconnect");
     socket.connect();
   }, []);
-  console.log(auctions, socket);
+  // console.log(auctions, socket);
 
   useEffect(() => {
     // Check if socket is already connected when component mounts
@@ -561,7 +561,7 @@ export default function Dashboard() {
                               Publisher:
                             </span>{" "}
                             <span className="font-medium">
-                              {auction.publisherId}
+                              {auction.domain || auction.publisherId}
                             </span>
                           </span>
                           <span className="flex items-center gap-1">
