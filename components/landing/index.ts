@@ -1,0 +1,9 @@
+export { Hero } from "./Hero";
+export { ProblemSection } from "./ProblemSection";
+export { CompetitiveTable } from "./CompetitiveTable";
+export { ProofOfPlay } from "./ProofOfPlay";
+export { TechnicalMoat } from "./TechnicalMoat";
+export { Architecture } from "./Architecture";
+export { CTASection } from "./CTASection";
+export { Navbar } from "./Navbar";
+export { Footer } from "./Footer";

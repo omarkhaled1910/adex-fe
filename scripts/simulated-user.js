@@ -34,10 +34,18 @@ socket.on('connect', () => {
     console.log('✅ Connected to server as simulated user.');
     
     setInterval(() => {
+        const adSlotId = getRandomElement(adSlots);
         const auctionData = {
-            publisherId: getRandomElement(publishers),
-            adSlotId: getRandomElement(adSlots),
-            floorPrice: parseFloat(getRandomFloorPrice()),
+          publisherId: getRandomElement(publishers),
+          adSlotId: adSlotId,
+          adSlotType: adSlotId, // Use same value for adSlotType
+          floorPrice: parseFloat(getRandomFloorPrice()),
+          userContext: {
+            countryCode: getRandomElement(["US", "GB", "DE", "FR", "JP"]),
+            device: getRandomElement(["desktop", "mobile", "tablet"]),
+            os: getRandomElement(["Windows", "macOS", "iOS", "Android"]),
+            browser: getRandomElement(["Chrome", "Firefox", "Safari"]),
+          },
         };
         socket.emit('create_auction', auctionData);
         console.log(`🚀 Emitted create_auction for ${auctionData.publisherId} (${auctionData.adSlotId})`);

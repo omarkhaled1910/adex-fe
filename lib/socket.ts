@@ -1,31 +1,93 @@
 import { io, Socket } from "socket.io-client";
 
+export interface Creative {
+  id: string;
+  campaign_id: string;
+  name: string;
+  format: string;
+  headline?: string;
+  description?: string;
+  cta_text?: string;
+  landing_url: string;
+  assets?: Record<string, unknown>;
+  width?: number;
+  height?: number;
+  ctr?: number;
+}
+
 export interface Bid {
   advertiserId: string;
+  campaignId?: string;
   amount: number;
   timestamp: number;
-  creative: {
-    headline: string;
-    cta: string;
-    image: string;
-    landingUrl: string;
-  };
+  responseTime?: number;
+  creative?:
+    | Creative
+    | {
+        headline: string;
+        cta: string;
+        image: string;
+        landingUrl: string;
+      };
+}
+
+export interface AuctionMetadata {
+  reason?:
+    | "timeout"
+    | "early_threshold"
+    | "all_bids_received"
+    | "shutdown"
+    | "force";
+  completionTime?: number;
+  bidCount?: number;
+  expectedCount?: number;
+  winningPrice?: number;
+  bidRatio?: number;
 }
 
 export interface Auction {
   id: string;
   publisherId: string;
   adSlotId: string;
+  adSlotType?: string;
   floorPrice: number;
   bids: Bid[];
-  status: "active" | "completed" | "expired";
+  status: "active" | "completed" | "expired" | "grace_period";
   winner?: Bid;
   createdAt: number;
+  completedAt?: number;
+  metadata?: AuctionMetadata;
+  userContext?: {
+    countryCode?: string;
+    device?: string;
+    os?: string;
+    browser?: string;
+  };
 }
 
 export interface BidResponse {
   auctionId: string;
   bid: Bid;
+  campaignId?: string;
+  amount?: number;
+  responseTime?: number;
+}
+
+export interface AuctionCompletedEvent {
+  auctionId: string;
+  winner: Bid | null;
+  allBids: Bid[];
+  auctionRequest: {
+    id: string;
+    publisherId: string;
+    adSlotId: string;
+    adSlotType?: string;
+    floorPrice: number;
+    userContext?: Auction["userContext"];
+    timestamp: number;
+  };
+  completedAt: number;
+  metadata: AuctionMetadata;
 }
 
 export interface SettlementEvent {
@@ -33,6 +95,8 @@ export interface SettlementEvent {
   winner: Bid;
   amount: number;
   timestamp: number;
+  publisherId?: string;
+  advertiserId?: string;
 }
 
 const SOCKET_URL = "http://localhost:3003";
