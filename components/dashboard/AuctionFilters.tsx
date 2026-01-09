@@ -14,7 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { Auction } from "@/lib/socket";
 
-export type AuctionStatus = "active" | "completed" | "grace_period";
+export type AuctionStatus = "active" | "completed" | "expired" | "grace_period" | "completing";
 export type DeviceType = "desktop" | "mobile" | "tablet";
 export type TimeRangeOption = "all" | "5m" | "1h" | "today";
 

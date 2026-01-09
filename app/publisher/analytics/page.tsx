@@ -238,7 +238,7 @@ export default function AnalyticsPage() {
           <CardContent>
             {dailyStats.length > 0 ? (
               <SimpleBarChart
-                data={dailyStats.map((d) => ({ ...d, revenue: parseFloat(d.revenue.toFixed(2)) }))}
+                data={dailyStats.map((d: any) => ({ ...d, revenue: parseFloat(d.revenue.toFixed(2)) }))}
                 valueKey="revenue"
                 color="green"
               />
@@ -276,12 +276,12 @@ export default function AnalyticsPage() {
           <CardContent>
             {dailyStats.length > 0 ? (
               <SimpleBarChart
-                data={dailyStats.map((d) => ({
+                data={dailyStats.map((d: any) => ({
                   ...d,
                   ctr: d.impressions > 0 ? parseFloat(((d.clicks / d.impressions) * 100).toFixed(2)) : 0
                 }))}
                 valueKey="ctr"
-                color="amber"
+                color="purple"
               />
             ) : (
               <p className="text-muted-foreground text-center py-8">No data available</p>

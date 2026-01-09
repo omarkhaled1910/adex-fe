@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
         AVG(b.response_time_ms) as avg_response_time_ms
       FROM auctions a
       LEFT JOIN publishers p ON a.publisher_id = p.id
-      LEFT JOIN bids b ON a.id = b.auction_id
+      LEFT JOIN bids b ON a.id::text = b.auction_id::text
       ${whereClause}
       GROUP BY a.id, p.domain, p.company_name
       ORDER BY a.created_at DESC

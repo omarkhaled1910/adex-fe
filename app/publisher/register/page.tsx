@@ -234,8 +234,7 @@ export default function PublisherRegisterPage() {
                 placeholder="0x..."
                 value={formData.wallet_address}
                 onChange={(e) => setFormData({ ...formData, wallet_address: e.target.value })}
-                className={cn(errors.wallet_address && "border-red-500")}
-                fontFamily="mono"
+                className={cn("font-mono", errors.wallet_address && "border-red-500")}
               />
               {errors.wallet_address && (
                 <p className="text-xs text-red-400">{errors.wallet_address}</p>

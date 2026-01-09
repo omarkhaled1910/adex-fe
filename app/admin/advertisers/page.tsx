@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Search, Users, DollarSign, Wallet, CheckCircle, Clock } from "lucide-react";
-import { RefreshControl } from "@/components/admin/RefreshControl";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Search, Users, DollarSign, Wallet, CheckCircle, Clock, Grid3X3, List } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -26,80 +27,67 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Pagination } from "@/components/admin/Pagination";
+import { RefreshControl } from "@/components/admin/RefreshControl";
+import {
+  useAdvertisers,
+  type Advertiser,
+} from "@/lib/hooks/use-admin-data";
 import { cn, formatCurrency, shortenAddress } from "@/lib/utils";
 
-interface Advertiser {
-  id: string;
-  wallet_address: string;
-  company_name: string;
-  email: string;
-  status: string;
-  on_chain_balance: number;
-  reserved_balance: number;
-  total_spent: number;
-  kyc_status: string;
-  campaign_count: number;
-  active_campaigns_count: number;
-  campaign_spend: number;
-  total_impressions: number;
-  avg_cpm: number;
-  avg_cpc: number;
-  created_at: Date;
-}
-
-interface AdvertiserStats {
-  total: number;
-  active: number;
-  pending: number;
-  kycApproved: number;
-  kycPending: number;
-  totalSpend: number;
-  totalBalances: number;
-}
+const ITEMS_PER_PAGE = 10;
 
 export default function AdvertisersDashboard() {
-  const [advertisers, setAdvertisers] = useState<Advertiser[]>([]);
-  const [stats, setStats] = useState<AdvertiserStats | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  const [refreshInterval, setRefreshInterval] = useState(10); // seconds
+  const refetchIntervalMs = refreshInterval > 0 ? refreshInterval * 1000 : false;
 
-  const fetchData = async () => {
-    try {
-      setRefreshing(true);
-      const res = await fetch(
-        `/api/admin/advertisers?status=${statusFilter}&limit=100`
-      );
+  const { data, isLoading, isError, error } = useAdvertisers(
+    statusFilter,
+    currentPage,
+    ITEMS_PER_PAGE,
+    refetchIntervalMs
+  );
 
-      if (res.ok) {
-        const data = await res.json();
-        setAdvertisers(data.advertisers);
-        setStats(data.stats);
-      }
-    } catch (error) {
-      console.error("Error fetching advertisers:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  const stats = data?.stats;
+  const advertisers = data?.advertisers || [];
+  const totalItems = data?.total || 0;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
-  useEffect(() => {
-    fetchData();
-  }, [statusFilter]);
-
+  // Client-side search filter
   const filteredAdvertisers = advertisers.filter((a) =>
     a.wallet_address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     a.company_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) {
+  const displayAdvertisers = searchTerm ? filteredAdvertisers : advertisers;
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  };
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <Users className="h-12 w-12 text-[var(--neon-purple)] animate-pulse mx-auto mb-4" />
           <p className="text-muted-foreground">Loading advertisers...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center text-red-500">
+          <p className="text-lg font-medium">Error loading advertisers</p>
+          <p className="text-sm text-muted-foreground">{error.message}</p>
         </div>
       </div>
     );
@@ -115,11 +103,31 @@ export default function AdvertisersDashboard() {
             Manage and monitor all advertisers
           </p>
         </div>
-        <RefreshControl
-          onRefresh={fetchData}
-          defaultInterval={10}
-          isRefreshing={refreshing}
-        />
+        <div className="flex items-center gap-2">
+          <RefreshControl
+            defaultInterval={10}
+            onRefresh={async () => {
+              await queryClient.invalidateQueries({ queryKey: ["admin", "advertisers"] });
+            }}
+            onIntervalChange={setRefreshInterval}
+          />
+          <Button
+            variant={viewMode === "grid" ? "default" : "outline"}
+            size="icon"
+            onClick={() => setViewMode("grid")}
+            className={viewMode === "grid" ? "bg-[var(--neon-purple)]" : ""}
+          >
+            <Grid3X3 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === "table" ? "default" : "outline"}
+            size="icon"
+            onClick={() => setViewMode("table")}
+            className={viewMode === "table" ? "bg-[var(--neon-purple)]" : ""}
+          >
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -208,7 +216,7 @@ export default function AdvertisersDashboard() {
             className="pl-10"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
@@ -221,19 +229,45 @@ export default function AdvertisersDashboard() {
         </Select>
       </div>
 
-      {/* Advertisers Table */}
-      <Card className="card-glow">
-        <CardHeader>
-          <CardTitle>Advertisers</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {filteredAdvertisers.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {searchTerm || statusFilter !== "all"
-                ? "No advertisers match your filters."
-                : "No advertisers found."}
+      {/* Advertisers Grid/Table */}
+      {displayAdvertisers.length === 0 ? (
+        <Card className="card-glow">
+          <CardContent className="text-center py-12 text-muted-foreground">
+            {searchTerm || statusFilter !== "all"
+              ? "No advertisers match your filters."
+              : "No advertisers found."}
+          </CardContent>
+        </Card>
+      ) : viewMode === "grid" ? (
+        <Card className="card-glow">
+          <CardHeader>
+            <CardTitle>Advertisers</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {displayAdvertisers.map((advertiser) => (
+                <AdvertiserCard key={advertiser.id} advertiser={advertiser} />
+              ))}
             </div>
-          ) : (
+            {!searchTerm && (
+              <div className="mt-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={totalItems}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="card-glow">
+          <CardHeader>
+            <CardTitle>Advertisers</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -253,7 +287,7 @@ export default function AdvertisersDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredAdvertisers.map((advertiser) => (
+                  {displayAdvertisers.map((advertiser) => (
                     <TableRow key={advertiser.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -265,44 +299,10 @@ export default function AdvertisersDashboard() {
                       </TableCell>
                       <TableCell>{advertiser.company_name || "-"}</TableCell>
                       <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            advertiser.status === "active" &&
-                              "bg-[var(--neon-green)]/20 text-[var(--neon-green)] border-[var(--neon-green)]/30",
-                            advertiser.status === "pending" &&
-                              "bg-[var(--neon-orange)]/20 text-[var(--neon-orange)] border-[var(--neon-orange)]/30",
-                            advertiser.status === "suspended" &&
-                              "bg-red-500/20 text-red-500 border-red-500/30"
-                          )}
-                        >
-                          {advertiser.status}
-                        </Badge>
+                        <StatusBadge status={advertiser.status} />
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            advertiser.kyc_status === "approved" &&
-                              "bg-[var(--neon-green)]/20 text-[var(--neon-green)] border-[var(--neon-green)]/30",
-                            advertiser.kyc_status === "pending" &&
-                              "bg-[var(--neon-orange)]/20 text-[var(--neon-orange)] border-[var(--neon-orange)]/30"
-                          )}
-                        >
-                          {advertiser.kyc_status === "approved" ? (
-                            <>
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Approved
-                            </>
-                          ) : advertiser.kyc_status === "pending" ? (
-                            <>
-                              <Clock className="h-3 w-3 mr-1" />
-                              Pending
-                            </>
-                          ) : (
-                            advertiser.kyc_status
-                          )}
-                        </Badge>
+                        <KycBadge kycStatus={advertiser.kyc_status} />
                       </TableCell>
                       <TableCell>{advertiser.campaign_count}</TableCell>
                       <TableCell>
@@ -337,9 +337,133 @@ export default function AdvertisersDashboard() {
                 </TableBody>
               </Table>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            {!searchTerm && (
+              <div className="mt-4">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={totalItems}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
+  );
+}
+
+// Advertiser Card Component
+function AdvertiserCard({ advertiser }: { advertiser: Advertiser }) {
+  return (
+    <Card className="card-glow hover:shadow-lg transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <Wallet className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <span className="font-mono text-xs text-muted-foreground">
+                {shortenAddress(advertiser.wallet_address)}
+              </span>
+            </div>
+            <p className="font-medium truncate mt-1">
+              {advertiser.company_name || "No company name"}
+            </p>
+          </div>
+          <StatusBadge status={advertiser.status} />
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">KYC Status</span>
+          <KycBadge kycStatus={advertiser.kyc_status} />
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Campaigns</span>
+          <span className="text-sm font-medium">
+            {advertiser.active_campaigns_count} / {advertiser.campaign_count}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Total Spent</span>
+          <span className="text-sm font-medium text-[var(--neon-green)]">
+            {formatCurrency(advertiser.total_spent)}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Balance</span>
+          <span className="text-sm font-medium">
+            {formatCurrency(advertiser.on_chain_balance)}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Reserved</span>
+          <span className="text-sm font-medium text-[var(--neon-orange)]">
+            {formatCurrency(advertiser.reserved_balance)}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Avg CPM</span>
+          <span className="text-sm font-medium">
+            {advertiser.avg_cpm ? `$${advertiser.avg_cpm.toFixed(2)}` : "-"}
+          </span>
+        </div>
+        <div className="pt-2 border-t border-border">
+          <p className="text-xs text-muted-foreground">
+            {advertiser.total_impressions?.toLocaleString() || "0"} impressions
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Status Badge Component
+function StatusBadge({ status }: { status: string }) {
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        status === "active" &&
+          "bg-[var(--neon-green)]/20 text-[var(--neon-green)] border-[var(--neon-green)]/30",
+        status === "pending" &&
+          "bg-[var(--neon-orange)]/20 text-[var(--neon-orange)] border-[var(--neon-orange)]/30",
+        status === "suspended" &&
+          "bg-red-500/20 text-red-500 border-red-500/30"
+      )}
+    >
+      {status}
+    </Badge>
+  );
+}
+
+// KYC Badge Component
+function KycBadge({ kycStatus }: { kycStatus: string }) {
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        kycStatus === "approved" &&
+          "bg-[var(--neon-green)]/20 text-[var(--neon-green)] border-[var(--neon-green)]/30",
+        kycStatus === "pending" &&
+          "bg-[var(--neon-orange)]/20 text-[var(--neon-orange)] border-[var(--neon-orange)]/30"
+      )}
+    >
+      {kycStatus === "approved" ? (
+        <>
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Approved
+        </>
+      ) : kycStatus === "pending" ? (
+        <>
+          <Clock className="h-3 w-3 mr-1" />
+          Pending
+        </>
+      ) : (
+        kycStatus
+      )}
+    </Badge>
   );
 }

@@ -236,13 +236,13 @@ export async function GET(request: NextRequest) {
         auctionCount: parseInt(p.auction_count as unknown as string),
       })),
       summary: {
-        totalRevenue: parseFloat(summary[0]?.total_revenue || "0"),
-        totalFees: parseFloat(summary[0]?.total_fees || "0"),
-        totalImpressions: parseInt(summary[0]?.total_impressions || "0"),
-        totalClicks: parseInt(summary[0]?.total_clicks || "0"),
-        avgCpm: parseFloat(summary[0]?.avg_cpm || "0"),
-        avgCpc: parseFloat(summary[0]?.avg_cpc || "0"),
-        overallCtr: parseFloat(summary[0]?.overall_ctr || "0"),
+        totalRevenue: Number(summary[0]?.total_revenue || 0),
+        totalFees: Number(summary[0]?.total_fees || 0),
+        totalImpressions: Number(summary[0]?.total_impressions || 0),
+        totalClicks: Number(summary[0]?.total_clicks || 0),
+        avgCpm: Number(summary[0]?.avg_cpm || 0),
+        avgCpc: Number(summary[0]?.avg_cpc || 0),
+        overallCtr: Number(summary[0]?.overall_ctr || 0),
       },
     });
   } catch (error) {

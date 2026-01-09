@@ -122,45 +122,45 @@ export async function GET(request: NextRequest) {
 
     const metrics = {
       duration: {
-        avg: parseFloat(durationMetrics[0]?.avg || "0"),
-        median: parseFloat(durationMetrics[0]?.median || "0"),
-        p95: parseFloat(durationMetrics[0]?.p95 || "0"),
-        p99: parseFloat(durationMetrics[0]?.p99 || "0"),
-        min: parseFloat(durationMetrics[0]?.min || "0"),
-        max: parseFloat(durationMetrics[0]?.max || "0"),
+        avg: Number(durationMetrics[0]?.avg || 0),
+        median: Number(durationMetrics[0]?.median || 0),
+        p95: Number(durationMetrics[0]?.p95 || 0),
+        p99: Number(durationMetrics[0]?.p99 || 0),
+        min: Number(durationMetrics[0]?.min || 0),
+        max: Number(durationMetrics[0]?.max || 0),
       },
       bidResponse: {
-        avg: parseFloat(bidResponseMetrics[0]?.avg || "0"),
-        median: parseFloat(bidResponseMetrics[0]?.median || "0"),
-        p95: parseFloat(bidResponseMetrics[0]?.p95 || "0"),
-        p99: parseFloat(bidResponseMetrics[0]?.p99 || "0"),
-        totalBids: parseInt(bidResponseMetrics[0]?.total_bids || "0"),
+        avg: Number(bidResponseMetrics[0]?.avg || 0),
+        median: Number(bidResponseMetrics[0]?.median || 0),
+        p95: Number(bidResponseMetrics[0]?.p95 || 0),
+        p99: Number(bidResponseMetrics[0]?.p99 || 0),
+        totalBids: Number(bidResponseMetrics[0]?.total_bids || 0),
       },
       completion: {
-        totalAuctions: parseInt(completionMetrics[0]?.total_auctions || "0"),
-        completedCount: parseInt(completionMetrics[0]?.completed_count || "0"),
-        withBidsCount: parseInt(completionMetrics[0]?.with_bids_count || "0"),
-        noBidsCount: parseInt(completionMetrics[0]?.no_bids_count || "0"),
-        timeoutCount: parseInt(completionMetrics[0]?.timeout_count || "0"),
-        earlyCount: parseInt(completionMetrics[0]?.early_count || "0"),
-        avgBidRatio: parseFloat(completionMetrics[0]?.avg_bid_ratio || "0"),
+        totalAuctions: Number(completionMetrics[0]?.total_auctions || 0),
+        completedCount: Number(completionMetrics[0]?.completed_count || 0),
+        withBidsCount: Number(completionMetrics[0]?.with_bids_count || 0),
+        noBidsCount: Number(completionMetrics[0]?.no_bids_count || 0),
+        timeoutCount: Number(completionMetrics[0]?.timeout_count || 0),
+        earlyCount: Number(completionMetrics[0]?.early_count || 0),
+        avgBidRatio: Number(completionMetrics[0]?.avg_bid_ratio || 0),
         // Calculate derived rates
         completionRate:
-          parseInt(completionMetrics[0]?.total_auctions || "0") > 0
-            ? (parseInt(completionMetrics[0]?.completed_count || "0") /
-                parseInt(completionMetrics[0]?.total_auctions || "1")) *
+          Number(completionMetrics[0]?.total_auctions || 0) > 0
+            ? (Number(completionMetrics[0]?.completed_count || 0) /
+                Number(completionMetrics[0]?.total_auctions || 1)) *
               100
             : 0,
         bidSuccessRate:
-          parseInt(completionMetrics[0]?.completed_count || "0") > 0
-            ? (parseInt(completionMetrics[0]?.with_bids_count || "0") /
-                parseInt(completionMetrics[0]?.completed_count || "1")) *
+          Number(completionMetrics[0]?.completed_count || 0) > 0
+            ? (Number(completionMetrics[0]?.with_bids_count || 0) /
+                Number(completionMetrics[0]?.completed_count || 1)) *
               100
             : 0,
         timeoutRate:
-          parseInt(completionMetrics[0]?.completed_count || "0") > 0
-            ? (parseInt(completionMetrics[0]?.timeout_count || "0") /
-                parseInt(completionMetrics[0]?.completed_count || "1")) *
+          Number(completionMetrics[0]?.completed_count || 0) > 0
+            ? (Number(completionMetrics[0]?.timeout_count || 0) /
+                Number(completionMetrics[0]?.completed_count || 1)) *
               100
             : 0,
       },

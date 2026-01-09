@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RefreshCw, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +16,7 @@ interface RefreshControlProps {
   onRefresh: () => void | Promise<void>;
   defaultInterval?: number;
   isRefreshing?: boolean;
+  onIntervalChange?: (interval: number) => void;
 }
 
 const intervals = [
@@ -44,8 +45,9 @@ export function RefreshControl({
   onRefresh,
   defaultInterval = 10,
   isRefreshing = false,
+  onIntervalChange,
 }: RefreshControlProps) {
-  const [interval, setInterval] = useState(defaultInterval);
+  const [interval, setIntervalValue] = useState(defaultInterval);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   const handleRefresh = async () => {
@@ -54,15 +56,15 @@ export function RefreshControl({
   };
 
   // Auto-refresh effect
-  useState(() => {
+  useEffect(() => {
     if (interval === 0) return;
 
-    const id = setInterval(async () => {
-      await handleRefresh();
+    const id = window.setInterval(() => {
+      handleRefresh();
     }, interval * 1000);
 
-    return () => clearInterval(id);
-  });
+    return () => window.clearInterval(id);
+  }, [interval, onRefresh]);
 
   const formatLastUpdate = (date: Date) => {
     const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
@@ -92,7 +94,11 @@ export function RefreshControl({
 
       <Select
         value={interval.toString()}
-        onValueChange={(val) => setInterval(parseInt(val))}
+        onValueChange={(val) => {
+          const newInterval = parseInt(val);
+          setIntervalValue(newInterval);
+          onIntervalChange?.(newInterval);
+        }}
       >
         <SelectTrigger className="h-8 w-20">
           <SelectValue />

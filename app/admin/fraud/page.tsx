@@ -33,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn, shortenAddress } from "@/lib/utils";
+import { cn, formatCurrency, shortenAddress } from "@/lib/utils";
 
 interface FraudIncident {
   id: string;
@@ -83,6 +83,7 @@ export default function FraudPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState(10); // seconds
 
   const fetchData = async () => {
     try {
@@ -140,6 +141,7 @@ export default function FraudPage() {
           onRefresh={fetchData}
           defaultInterval={10}
           isRefreshing={refreshing}
+          onIntervalChange={setRefreshInterval}
         />
       </div>
 

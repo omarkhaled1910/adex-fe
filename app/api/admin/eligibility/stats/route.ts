@@ -166,12 +166,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       overall: {
-        totalAuctions: parseInt(eligibilityMetrics[0]?.total_auctions || "0"),
-        avgEligibilityRate: parseFloat(eligibilityMetrics[0]?.avg_bid_ratio || "0") * 100,
-        noEligibleAuctions: parseInt(eligibilityMetrics[0]?.no_eligible_auctions || "0"),
-        highEligibilityAuctions: parseInt(eligibilityMetrics[0]?.high_eligibility_auctions || "0"),
-        mediumEligibilityAuctions: parseInt(eligibilityMetrics[0]?.medium_eligibility_auctions || "0"),
-        lowEligibilityAuctions: parseInt(eligibilityMetrics[0]?.low_eligibility_auctions || "0"),
+        totalAuctions: Number(eligibilityMetrics[0]?.total_auctions || 0),
+        avgEligibilityRate: Number(eligibilityMetrics[0]?.avg_bid_ratio || 0) * 100,
+        noEligibleAuctions: Number(eligibilityMetrics[0]?.no_eligible_auctions || 0),
+        highEligibilityAuctions: Number(eligibilityMetrics[0]?.high_eligibility_auctions || 0),
+        mediumEligibilityAuctions: Number(eligibilityMetrics[0]?.medium_eligibility_auctions || 0),
+        lowEligibilityAuctions: Number(eligibilityMetrics[0]?.low_eligibility_auctions || 0),
       },
       breakdown: breakdownWithPercents,
       problematicCampaigns: problematicCampaigns.map((c) => ({

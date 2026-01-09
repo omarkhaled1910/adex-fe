@@ -142,3 +142,13 @@ if (typeof window !== "undefined") {
 }
 
 export { socket };
+
+export function getSocket() {
+  return socket;
+}
+
+export function disconnectSocket() {
+  if (socket && socket.connected) {
+    socket.disconnect();
+  }
+}

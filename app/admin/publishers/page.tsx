@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Search, Globe, DollarSign, TrendingUp, CheckCircle } from "lucide-react";
-import { RefreshControl } from "@/components/admin/RefreshControl";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Search, Globe, DollarSign, TrendingUp, CheckCircle, Grid3X3, List } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -26,79 +27,68 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn, formatCurrency, shortenAddress } from "@/lib/utils";
+import { Pagination } from "@/components/admin/Pagination";
+import { RefreshControl } from "@/components/admin/RefreshControl";
+import {
+  usePublishers,
+  type Publisher,
+  type PublisherStats,
+} from "@/lib/hooks/use-admin-data";
+import { cn, formatCurrency } from "@/lib/utils";
 
-interface Publisher {
-  id: string;
-  domain: string;
-  company_name: string;
-  email: string;
-  status: string;
-  tier: string;
-  total_earnings: number;
-  pending_earnings: number;
-  withdrawn_earnings: number;
-  domain_verified: boolean;
-  website_category: string | null;
-  monthly_pageviews: number | null;
-  auction_count: number;
-  total_revenue_generated: number;
-  avg_auction_duration: number | null;
-  created_at: Date;
-}
-
-interface PublisherStats {
-  total: number;
-  active: number;
-  pending: number;
-  suspended: number;
-  verified: number;
-  totalEarnings: number;
-}
+const ITEMS_PER_PAGE = 10;
 
 export default function PublishersDashboard() {
-  const [publishers, setPublishers] = useState<Publisher[]>([]);
-  const [stats, setStats] = useState<PublisherStats | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  const [refreshInterval, setRefreshInterval] = useState(10); // seconds
+  const refetchIntervalMs = refreshInterval > 0 ? refreshInterval * 1000 : false;
 
-  const fetchData = async () => {
-    try {
-      setRefreshing(true);
-      const res = await fetch(
-        `/api/admin/publishers?status=${statusFilter}&limit=100`
-      );
+  const { data, isLoading, isError, error } = usePublishers(
+    statusFilter,
+    currentPage,
+    ITEMS_PER_PAGE,
+    refetchIntervalMs
+  );
 
-      if (res.ok) {
-        const data = await res.json();
-        setPublishers(data.publishers);
-        setStats(data.stats);
-      }
-    } catch (error) {
-      console.error("Error fetching publishers:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  const stats = data?.stats;
+  const publishers = data?.publishers || [];
+  const totalItems = data?.total || 0;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
-  useEffect(() => {
-    fetchData();
-  }, [statusFilter]);
-
+  // Client-side search filter
   const filteredPublishers = publishers.filter((p) =>
     p.domain?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.company_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) {
+  const displayPublishers = searchTerm ? filteredPublishers : publishers;
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  };
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <Globe className="h-12 w-12 text-[var(--neon-purple)] animate-pulse mx-auto mb-4" />
           <p className="text-muted-foreground">Loading publishers...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center text-red-500">
+          <p className="text-lg font-medium">Error loading publishers</p>
+          <p className="text-sm text-muted-foreground">{error.message}</p>
         </div>
       </div>
     );
@@ -114,11 +104,31 @@ export default function PublishersDashboard() {
             Manage and monitor all publishers
           </p>
         </div>
-        <RefreshControl
-          onRefresh={fetchData}
-          defaultInterval={10}
-          isRefreshing={refreshing}
-        />
+        <div className="flex items-center gap-2">
+          <RefreshControl
+            defaultInterval={10}
+            onRefresh={async () => {
+              await queryClient.invalidateQueries({ queryKey: ["admin", "publishers"] });
+            }}
+            onIntervalChange={setRefreshInterval}
+          />
+          <Button
+            variant={viewMode === "grid" ? "default" : "outline"}
+            size="icon"
+            onClick={() => setViewMode("grid")}
+            className={viewMode === "grid" ? "bg-[var(--neon-purple)]" : ""}
+          >
+            <Grid3X3 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === "table" ? "default" : "outline"}
+            size="icon"
+            onClick={() => setViewMode("table")}
+            className={viewMode === "table" ? "bg-[var(--neon-purple)]" : ""}
+          >
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -206,7 +216,7 @@ export default function PublishersDashboard() {
             className="pl-10"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
@@ -219,19 +229,45 @@ export default function PublishersDashboard() {
         </Select>
       </div>
 
-      {/* Publishers Table */}
-      <Card className="card-glow">
-        <CardHeader>
-          <CardTitle>Publishers</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {filteredPublishers.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {searchTerm || statusFilter !== "all"
-                ? "No publishers match your filters."
-                : "No publishers found."}
+      {/* Publishers Grid/Table */}
+      {displayPublishers.length === 0 ? (
+        <Card className="card-glow">
+          <CardContent className="text-center py-12 text-muted-foreground">
+            {searchTerm || statusFilter !== "all"
+              ? "No publishers match your filters."
+              : "No publishers found."}
+          </CardContent>
+        </Card>
+      ) : viewMode === "grid" ? (
+        <Card className="card-glow">
+          <CardHeader>
+            <CardTitle>Publishers</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {displayPublishers.map((publisher) => (
+                <PublisherCard key={publisher.id} publisher={publisher} />
+              ))}
             </div>
-          ) : (
+            {!searchTerm && (
+              <div className="mt-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={totalItems}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="card-glow">
+          <CardHeader>
+            <CardTitle>Publishers</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -249,7 +285,7 @@ export default function PublishersDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredPublishers.map((publisher) => (
+                  {displayPublishers.map((publisher) => (
                     <TableRow key={publisher.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -259,19 +295,7 @@ export default function PublishersDashboard() {
                       </TableCell>
                       <TableCell>{publisher.company_name || "-"}</TableCell>
                       <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            publisher.status === "active" &&
-                              "bg-[var(--neon-green)]/20 text-[var(--neon-green)] border-[var(--neon-green)]/30",
-                            publisher.status === "pending" &&
-                              "bg-[var(--neon-orange)]/20 text-[var(--neon-orange)] border-[var(--neon-orange)]/30",
-                            publisher.status === "suspended" &&
-                              "bg-red-500/20 text-red-500 border-red-500/30"
-                          )}
-                        >
-                          {publisher.status}
-                        </Badge>
+                        <StatusBadge status={publisher.status} />
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary">{publisher.tier}</Badge>
@@ -299,9 +323,98 @@ export default function PublishersDashboard() {
                 </TableBody>
               </Table>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            {!searchTerm && (
+              <div className="mt-4">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={totalItems}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
+  );
+}
+
+// Publisher Card Component
+function PublisherCard({ publisher }: { publisher: Publisher }) {
+  return (
+    <Card className="card-glow hover:shadow-lg transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Globe className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <span className="font-medium truncate">{publisher.domain}</span>
+          </div>
+          <StatusBadge status={publisher.status} />
+        </div>
+        <p className="text-sm text-muted-foreground truncate">
+          {publisher.company_name || "No company name"}
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Tier</span>
+          <Badge variant="secondary" className="text-xs">
+            {publisher.tier}
+          </Badge>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Auctions</span>
+          <span className="text-sm font-medium">{publisher.auction_count || 0}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Total Earnings</span>
+          <span className="text-sm font-medium text-[var(--neon-green)]">
+            {formatCurrency(publisher.total_earnings)}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Pending</span>
+          <span className="text-sm font-medium text-[var(--neon-orange)]">
+            {formatCurrency(publisher.pending_earnings)}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Verified</span>
+          {publisher.domain_verified ? (
+            <CheckCircle className="h-4 w-4 text-[var(--neon-green)]" />
+          ) : (
+            <span className="text-xs text-muted-foreground">No</span>
+          )}
+        </div>
+        {publisher.website_category && (
+          <div className="pt-2 border-t border-border">
+            <span className="text-xs text-muted-foreground">
+              {publisher.website_category}
+            </span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// Status Badge Component
+function StatusBadge({ status }: { status: string }) {
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        status === "active" &&
+          "bg-[var(--neon-green)]/20 text-[var(--neon-green)] border-[var(--neon-green)]/30",
+        status === "pending" &&
+          "bg-[var(--neon-orange)]/20 text-[var(--neon-orange)] border-[var(--neon-orange)]/30",
+        status === "suspended" &&
+          "bg-red-500/20 text-red-500 border-red-500/30"
+      )}
+    >
+      {status}
+    </Badge>
   );
 }

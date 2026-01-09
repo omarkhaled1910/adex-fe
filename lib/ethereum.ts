@@ -42,24 +42,23 @@ export interface PlatformStats {
 }
 
 export async function getProvider(): Promise<
-  ethers.BrowserProvider | ethers.JsonRpcProvider
+  ethers.providers.Web3Provider | ethers.providers.JsonRpcProvider
 > {
   if (typeof window !== "undefined" && (window as any).ethereum) {
-    return new ethers.BrowserProvider((window as any).ethereum);
+    return new ethers.providers.Web3Provider((window as any).ethereum);
   }
   // Fallback to local node
-  return new ethers.JsonRpcProvider("http://127.0.0.1:8545");
+  return new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
 }
 
 export async function getSigner(): Promise<ethers.Signer> {
   const provider = await getProvider();
-  if (provider instanceof ethers.BrowserProvider) {
+  if (provider instanceof ethers.providers.Web3Provider) {
     await provider.send("eth_requestAccounts", []);
     return provider.getSigner();
   }
   // For local development, use first account
-  const accounts = await (provider as ethers.JsonRpcProvider).listAccounts();
-  return accounts[0];
+  return (provider as ethers.providers.JsonRpcProvider).getSigner();
 }
 
 export async function getContract(
@@ -75,15 +74,15 @@ export async function getContract(
 
 export async function depositAsAdvertiser(
   amountInEther: string
-): Promise<ethers.TransactionReceipt> {
+): Promise<ethers.providers.TransactionReceipt> {
   const contract = await getContract(true);
   const tx = await contract.depositAsAdvertiser({
-    value: ethers.parseEther(amountInEther),
+    value: ethers.utils.parseEther(amountInEther),
   });
   return tx.wait();
 }
 
-export async function registerAsPublisher(): Promise<ethers.TransactionReceipt> {
+export async function registerAsPublisher(): Promise<ethers.providers.TransactionReceipt> {
   const contract = await getContract(true);
   const tx = await contract.registerAsPublisher();
   return tx.wait();
@@ -116,19 +115,19 @@ export async function getPlatformStats(): Promise<PlatformStats> {
 
 export async function withdrawAdvertiser(
   amountInEther: string
-): Promise<ethers.TransactionReceipt> {
+): Promise<ethers.providers.TransactionReceipt> {
   const contract = await getContract(true);
   const tx = await contract.withdrawAdvertiser(
-    ethers.parseEther(amountInEther)
+    ethers.utils.parseEther(amountInEther)
   );
   return tx.wait();
 }
 
 export async function withdrawPublisher(
   amountInEther: string
-): Promise<ethers.TransactionReceipt> {
+): Promise<ethers.providers.TransactionReceipt> {
   const contract = await getContract(true);
-  const tx = await contract.withdrawPublisher(ethers.parseEther(amountInEther));
+  const tx = await contract.withdrawPublisher(ethers.utils.parseEther(amountInEther));
   return tx.wait();
 }
 
@@ -167,7 +166,7 @@ export async function signSettlement(
     deadline,
   };
 
-  return (signer as ethers.Signer & { signTypedData: Function }).signTypedData(
+  return (signer as ethers.Signer & { _signTypedData: Function })._signTypedData(
     domain,
     types,
     value

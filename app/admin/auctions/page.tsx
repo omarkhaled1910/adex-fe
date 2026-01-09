@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Filter,
   Timer,
@@ -9,8 +10,9 @@ import {
   Clock,
   Zap,
   AlertCircle,
+  Grid3X3,
+  List,
 } from "lucide-react";
-import { RefreshControl } from "@/components/admin/RefreshControl";
 import {
   Card,
   CardContent,
@@ -34,92 +36,67 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Pagination } from "@/components/admin/Pagination";
+import { RefreshControl } from "@/components/admin/RefreshControl";
+import {
+  useAuctions,
+  usePerformanceMetrics,
+  type Auction,
+} from "@/lib/hooks/use-admin-data";
 import { cn, formatCurrency, shortenAddress } from "@/lib/utils";
 
-interface Auction {
-  id: string;
-  publisher_id: string;
-  domain: string | null;
-  publisher_name: string | null;
-  ad_slot_id: string;
-  status: string;
-  floor_price: number;
-  total_bids: number;
-  expected_bids: number;
-  bid_ratio: number;
-  duration_ms: number | null;
-  winning_amount: number | null;
-  winning_price: number | null;
-  completion_reason: string | null;
-  bid_count: number;
-  highest_bid: number | null;
-  avg_response_time_ms: number | null;
-  created_at: Date;
-}
-
-interface PerformanceMetrics {
-  duration: {
-    avg: number;
-    median: number;
-    p95: number;
-    p99: number;
-  };
-  bidResponse: {
-    avg: number;
-    median: number;
-    p95: number;
-    p99: number;
-  };
-  completion: {
-    totalAuctions: number;
-    completionRate: number;
-    bidSuccessRate: number;
-    timeoutRate: number;
-  };
-}
+const ITEMS_PER_PAGE = 10;
 
 export default function AuctionsMonitoringPage() {
-  const [auctions, setAuctions] = useState<Auction[]>([]);
-  const [metrics, setMetrics] = useState<PerformanceMetrics | null>(null);
+  const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  const [timeFilter, setTimeFilter] = useState<number>(24);
+  const [refreshInterval, setRefreshInterval] = useState(10); // seconds
+  const refetchIntervalMs = refreshInterval > 0 ? refreshInterval * 1000 : false;
 
-  const fetchData = async () => {
-    try {
-      setRefreshing(true);
-      const [auctionsRes, metricsRes] = await Promise.all([
-        fetch(`/api/admin/auctions?status=${statusFilter}&limit=100&hours=24`),
-        fetch("/api/admin/performance?hours=24"),
-      ]);
+  const { data: auctionsData, isLoading, isError, error } = useAuctions(
+    statusFilter,
+    currentPage,
+    ITEMS_PER_PAGE,
+    timeFilter,
+    refetchIntervalMs
+  );
 
-      if (auctionsRes.ok) {
-        const data = await auctionsRes.json();
-        setAuctions(data.auctions);
-      }
+  const { data: metrics } = usePerformanceMetrics(timeFilter, refetchIntervalMs);
 
-      if (metricsRes.ok) {
-        const data = await metricsRes.json();
-        setMetrics(data);
-      }
-    } catch (error) {
-      console.error("Error fetching auctions data:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+  const auctions = auctionsData?.auctions || [];
+  const totalItems = auctionsData?.total || 0;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [statusFilter]);
+  const handleTimeFilterChange = (value: string) => {
+    setTimeFilter(parseInt(value));
+    setCurrentPage(1);
+  };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <Activity className="h-12 w-12 text-[var(--neon-purple)] animate-pulse mx-auto mb-4" />
           <p className="text-muted-foreground">Loading auction data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center text-red-500">
+          <p className="text-lg font-medium">Error loading auction data</p>
+          <p className="text-sm text-muted-foreground">{error.message}</p>
         </div>
       </div>
     );
@@ -136,7 +113,15 @@ export default function AuctionsMonitoringPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <RefreshControl
+            defaultInterval={10}
+            onRefresh={async () => {
+              await queryClient.invalidateQueries({ queryKey: ["admin", "auctions"] });
+              await queryClient.invalidateQueries({ queryKey: ["admin", "performance"] });
+            }}
+            onIntervalChange={setRefreshInterval}
+          />
+          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -147,11 +132,33 @@ export default function AuctionsMonitoringPage() {
               <SelectItem value="expired">Expired</SelectItem>
             </SelectContent>
           </Select>
-          <RefreshControl
-            onRefresh={fetchData}
-            defaultInterval={5}
-            isRefreshing={refreshing}
-          />
+          <Select value={timeFilter.toString()} onValueChange={handleTimeFilterChange}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Time range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">Last 1h</SelectItem>
+              <SelectItem value="6">Last 6h</SelectItem>
+              <SelectItem value="24">Last 24h</SelectItem>
+              <SelectItem value="168">Last 7 days</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant={viewMode === "grid" ? "default" : "outline"}
+            size="icon"
+            onClick={() => setViewMode("grid")}
+            className={viewMode === "grid" ? "bg-[var(--neon-purple)]" : ""}
+          >
+            <Grid3X3 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === "table" ? "default" : "outline"}
+            size="icon"
+            onClick={() => setViewMode("table")}
+            className={viewMode === "table" ? "bg-[var(--neon-purple)]" : ""}
+          >
+            <List className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
@@ -220,7 +227,9 @@ export default function AuctionsMonitoringPage() {
               <div
                 className={cn(
                   "text-2xl font-bold",
-                  metrics.completion.timeoutRate > 10 ? "text-red-500" : "text-[var(--neon-orange)]"
+                  metrics.completion.timeoutRate > 10
+                    ? "text-red-500"
+                    : "text-[var(--neon-orange)]"
                 )}
               >
                 {metrics.completion.timeoutRate.toFixed(1)}%
@@ -248,7 +257,13 @@ export default function AuctionsMonitoringPage() {
                 { label: "P95", value: metrics.duration.p95 },
                 { label: "P99", value: metrics.duration.p99 },
               ].map((stat) => {
-                const max = Math.max(...Object.values(metrics.duration));
+                const max = Math.max(
+                  metrics.duration.avg,
+                  metrics.duration.median,
+                  metrics.duration.p95,
+                  metrics.duration.p99,
+                  metrics.duration.min || 0
+                );
                 const height = (stat.value / max) * 100;
                 return (
                   <div key={stat.label} className="flex-1 flex flex-col items-center">
@@ -270,17 +285,41 @@ export default function AuctionsMonitoringPage() {
         </Card>
       )}
 
-      {/* Auctions Table */}
-      <Card className="card-glow">
-        <CardHeader>
-          <CardTitle>Auctions (Last 24h)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {auctions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No auctions found for the selected filters.
+      {/* Auctions Grid/Table */}
+      {auctions.length === 0 ? (
+        <Card className="card-glow">
+          <CardContent className="text-center py-12 text-muted-foreground">
+            No auctions found for the selected filters.
+          </CardContent>
+        </Card>
+      ) : viewMode === "grid" ? (
+        <Card className="card-glow">
+          <CardHeader>
+            <CardTitle>Auctions (Last {timeFilter === 168 ? "7 days" : `${timeFilter}h`})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {auctions.map((auction) => (
+                <AuctionCard key={auction.id} auction={auction} />
+              ))}
             </div>
-          ) : (
+            <div className="mt-6">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="card-glow">
+          <CardHeader>
+            <CardTitle>Auctions (Last {timeFilter === 168 ? "7 days" : `${timeFilter}h`})</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -313,19 +352,7 @@ export default function AuctionsMonitoringPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            auction.status === "active" &&
-                              "bg-blue-500/20 text-blue-400 border-blue-500/30",
-                            auction.status === "completed" &&
-                              "bg-green-500/20 text-green-400 border-green-500/30",
-                            auction.status === "expired" &&
-                              "bg-gray-500/20 text-gray-400 border-gray-500/30"
-                          )}
-                        >
-                          {auction.status}
-                        </Badge>
+                        <AuctionStatusBadge status={auction.status} />
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
@@ -370,20 +397,7 @@ export default function AuctionsMonitoringPage() {
                       </TableCell>
                       <TableCell>
                         {auction.completion_reason ? (
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              "text-xs",
-                              auction.completion_reason === "timeout" &&
-                                "border-[var(--neon-orange)] text-[var(--neon-orange)]",
-                              auction.completion_reason.includes("early") &&
-                                "border-[var(--neon-green)] text-[var(--neon-green)]",
-                              auction.completion_reason === "all_bids_received" &&
-                                "border-[var(--neon-blue)] text-[var(--neon-blue)]"
-                            )}
-                          >
-                            {auction.completion_reason}
-                          </Badge>
+                          <CompletionReasonBadge reason={auction.completion_reason} />
                         ) : (
                           "-"
                         )}
@@ -396,9 +410,129 @@ export default function AuctionsMonitoringPage() {
                 </TableBody>
               </Table>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div className="mt-4">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
+  );
+}
+
+// Auction Card Component
+function AuctionCard({ auction }: { auction: Auction }) {
+  return (
+    <Card className="card-glow hover:shadow-lg transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <p className="font-mono text-xs text-muted-foreground">
+              {shortenAddress(auction.id)}
+            </p>
+            <p className="font-medium truncate mt-1">
+              {auction.domain || auction.publisher_name || "Unknown Publisher"}
+            </p>
+          </div>
+          <AuctionStatusBadge status={auction.status} />
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Bids</span>
+          <span className="text-sm font-medium">
+            {auction.bid_count} / {auction.expected_bids || "-"}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Bid Ratio</span>
+          <div className="flex items-center gap-2">
+            <div className="w-12 h-2 bg-secondary rounded-full overflow-hidden">
+              <div
+                className={cn(
+                  "h-full",
+                  (auction.bid_ratio || 0) >= 0.8
+                    ? "bg-[var(--neon-green)]"
+                    : (auction.bid_ratio || 0) >= 0.5
+                    ? "bg-[var(--neon-orange)]"
+                    : "bg-red-500"
+                )}
+                style={{
+                  width: `${Math.min(100, (auction.bid_ratio || 0) * 100)}%`,
+                }}
+              />
+            </div>
+            <span className="text-xs">{((auction.bid_ratio || 0) * 100).toFixed(0)}%</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Duration</span>
+          <span className="text-sm font-medium">
+            {auction.duration_ms ? `${auction.duration_ms}ms` : "-"}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Winning</span>
+          <span className="text-sm font-medium text-[var(--neon-green)]">
+            {auction.winning_amount ? formatCurrency(auction.winning_amount) : "-"}
+          </span>
+        </div>
+        {auction.completion_reason && (
+          <div className="pt-2 border-t border-border">
+            <CompletionReasonBadge reason={auction.completion_reason} />
+          </div>
+        )}
+        <div className="pt-2 border-t border-border">
+          <p className="text-xs text-muted-foreground">
+            {new Date(auction.created_at).toLocaleString()}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Auction Status Badge Component
+function AuctionStatusBadge({ status }: { status: string }) {
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        status === "active" &&
+          "bg-blue-500/20 text-blue-400 border-blue-500/30",
+        status === "completed" &&
+          "bg-green-500/20 text-green-400 border-green-500/30",
+        status === "expired" &&
+          "bg-gray-500/20 text-gray-400 border-gray-500/30"
+      )}
+    >
+      {status}
+    </Badge>
+  );
+}
+
+// Completion Reason Badge Component
+function CompletionReasonBadge({ reason }: { reason: string }) {
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        "text-xs",
+        reason === "timeout" &&
+          "border-[var(--neon-orange)] text-[var(--neon-orange)]",
+        reason.includes("early") &&
+          "border-[var(--neon-green)] text-[var(--neon-green)]",
+        reason === "all_bids_received" &&
+          "border-[var(--neon-blue)] text-[var(--neon-blue)]"
+      )}
+    >
+      {reason}
+    </Badge>
   );
 }

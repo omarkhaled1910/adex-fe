@@ -1,7 +1,6 @@
 const io = require("socket.io-client");
 
 const SOCKET_URL = process.env.SOCKET_URL || "http://localhost:3003";
-
 // ============================================================================
 // STATIC IDs - Replace these with actual UUIDs from your database
 // ============================================================================

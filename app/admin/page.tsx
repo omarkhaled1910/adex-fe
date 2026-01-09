@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Activity,
   DollarSign,
@@ -62,47 +63,57 @@ interface RecentAuction {
   created_at: Date;
 }
 
+// Fetch functions
+async function fetchAdminStats(): Promise<AdminStats> {
+  const res = await fetch("/api/admin/stats?hours=24");
+  if (!res.ok) throw new Error("Failed to fetch admin stats");
+  return res.json();
+}
+
+async function fetchRecentAuctions(): Promise<RecentAuction[]> {
+  const res = await fetch("/api/admin/auctions?limit=10&hours=24");
+  if (!res.ok) throw new Error("Failed to fetch recent auctions");
+  const data = await res.json();
+  return data.auctions;
+}
+
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<AdminStats | null>(null);
-  const [recentAuctions, setRecentAuctions] = useState<RecentAuction[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
+  const [refreshInterval, setRefreshInterval] = useState(10); // seconds
+  const refetchIntervalMs = refreshInterval > 0 ? refreshInterval * 1000 : false;
 
-  const fetchData = async () => {
-    try {
-      setRefreshing(true);
-      const [statsRes, auctionsRes] = await Promise.all([
-        fetch("/api/admin/stats?hours=24"),
-        fetch("/api/admin/auctions?limit=10&hours=24"),
-      ]);
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery({
+    queryKey: ["admin", "stats"],
+    queryFn: fetchAdminStats,
+    refetchInterval: refetchIntervalMs,
+  });
 
-      if (statsRes.ok) {
-        const statsData = await statsRes.json();
-        setStats(statsData);
-      }
+  const { data: recentAuctions = [], isLoading: auctionsLoading } = useQuery({
+    queryKey: ["admin", "recent-auctions"],
+    queryFn: fetchRecentAuctions,
+    refetchInterval: refetchIntervalMs,
+  });
 
-      if (auctionsRes.ok) {
-        const auctionsData = await auctionsRes.json();
-        setRecentAuctions(auctionsData.auctions);
-      }
-    } catch (error) {
-      console.error("Error fetching admin data:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  const isLoading = statsLoading || auctionsLoading;
+  const isError = statsError;
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <Zap className="h-12 w-12 text-[var(--neon-purple)] animate-pulse mx-auto mb-4" />
           <p className="text-muted-foreground">Loading admin dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center text-red-500">
+          <p className="text-lg font-medium">Error loading dashboard</p>
+          <p className="text-sm text-muted-foreground">Please try again later</p>
         </div>
       </div>
     );
@@ -119,9 +130,11 @@ export default function AdminDashboard() {
           </p>
         </div>
         <RefreshControl
-          onRefresh={fetchData}
           defaultInterval={10}
-          isRefreshing={refreshing}
+          onRefresh={async () => {
+            await queryClient.invalidateQueries({ queryKey: ["admin"] });
+          }}
+          onIntervalChange={setRefreshInterval}
         />
       </div>
 
