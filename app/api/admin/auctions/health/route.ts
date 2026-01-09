@@ -264,12 +264,33 @@ export async function GET(request: NextRequest) {
         noBidRate: noBidRate.toFixed(1),
         timeRange: `${hours}h`,
       },
-      completionReasons,
+      completionReasons: completionReasons.map((r: any) => ({
+        ...r,
+        avg_duration: Number(r.avg_duration),
+        avg_bids: Number(r.avg_bids),
+        avg_bid_ratio: Number(r.avg_bid_ratio),
+      })),
       statusDistribution,
       problematicAuctions,
-      bidResponseTimes,
-      publisherHealth,
-      campaignHealth,
+      bidResponseTimes: bidResponseTimes.map((b: any) => ({
+        ...b,
+        avg_bid_amount: Number(b.avg_bid_amount),
+      })),
+      publisherHealth: publisherHealth.map((p: any) => ({
+        ...p,
+        avg_duration: Number(p.avg_duration),
+        avg_bids: Number(p.avg_bids),
+        avg_bid_ratio: Number(p.avg_bid_ratio),
+        no_bid_rate: Number(p.no_bid_rate),
+      })),
+      campaignHealth: campaignHealth.map((c: any) => ({
+        ...c,
+        max_bid: Number(c.max_bid),
+        daily_budget: Number(c.daily_budget),
+        spent_amount: Number(c.spent_amount),
+        avg_bid_amount: Number(c.avg_bid_amount),
+        avg_response_time: Number(c.avg_response_time),
+      })),
       dataIntegrity: recentErrors[0] || {},
     });
   } catch (error) {
