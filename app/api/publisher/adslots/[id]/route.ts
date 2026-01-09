@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-
-// Demo publisher ID (replace with actual auth middleware)
-const DEMO_PUBLISHER_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+import { DEMO_PUBLISHER_ID } from "@/lib/config";
 
 async function getPublisherIdFromRequest(request: NextRequest): Promise<string> {
   const authHeader = request.headers.get("authorization");

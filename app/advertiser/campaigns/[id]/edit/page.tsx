@@ -65,6 +65,7 @@ export default function EditCampaignPage({
       target_devices: campaign.target_devices || [],
       target_os: campaign.target_os || [],
       target_browsers: campaign.target_browsers || [],
+      target_categories: (campaign as any).target_categories || [],
       max_impressions_per_user:
         campaign.max_impressions_per_user?.toString() || "",
       max_impressions_per_day:

@@ -5,7 +5,7 @@ import type { Publisher, AdSlot, CreateAdSlotInput, UpdateAdSlotInput } from "@/
 
 // Demo publisher data (for development)
 const DEMO_PUBLISHER: Publisher = {
-  id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  id: "62c51d2b-4523-40b9-a6fb-ae4dd50fbf7b",
   company_name: "Demo Publisher Inc.",
   domain: "example.com",
   email: "publisher@example.com",
@@ -13,7 +13,7 @@ const DEMO_PUBLISHER: Publisher = {
   wallet_address: "0x1234567890abcdef1234567890abcdef12345678",
   status: "active",
   tier: "standard",
-  total_earnings: 1250.50,
+  total_earnings: 1250.5,
   pending_earnings: 350.25,
   withdrawn_earnings: 900.25,
   domain_verified: true,

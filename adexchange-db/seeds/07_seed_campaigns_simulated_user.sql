@@ -57,289 +57,289 @@ BEGIN
   -- ========================================================================
   -- NIKE: High-Bid Aggressive Campaigns (3 campaigns)
   -- ========================================================================
-  
+
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices, target_os, target_browsers,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     nike_id, 'Nike Global Domination', 50.0, 5.0, 0.10, 'highest',
     sim_publishers, sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active', 'sports'
   ),
   (
     nike_id, 'Nike Video Blitz', 30.0, 3.0, 0.08, 'dynamic',
     sim_publishers, ARRAY['video_pre_roll', 'in_article_video', 'interstitial'],
     sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active', 'sports'
   ),
   (
     nike_id, 'Nike Banner Everywhere', 25.0, 2.5, 0.075, 'highest',
     sim_publishers, ARRAY['banner_top', 'sidebar_right', 'native_feed'],
     sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '90 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '90 days', 'active', 'sports'
   );
 
   -- ========================================================================
   -- ADIDAS: Competitive Bidding (3 campaigns)
   -- ========================================================================
-  
+
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices, target_os, target_browsers,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     adidas_id, 'Adidas All Publishers Rush', 40.0, 4.0, 0.095, 'highest',
     sim_publishers, sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active', 'sports'
   ),
   (
     adidas_id, 'Adidas Mobile First', 20.0, 2.0, 0.085, 'dynamic',
     sim_publishers, sim_ad_slots, sim_geos, ARRAY['mobile', 'tablet'],
     ARRAY['iOS', 'Android'], sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active', 'sports'
   ),
   (
     adidas_id, 'Adidas Desktop Premium', 25.0, 2.5, 0.09, 'target_cpm',
     sim_publishers, ARRAY['banner_top', 'sidebar_right'],
     sim_geos, ARRAY['desktop'], ARRAY['Windows', 'macOS'], sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '120 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '120 days', 'active', 'sports'
   );
 
   -- ========================================================================
   -- AMAZON: Maximum Coverage (4 campaigns)
   -- ========================================================================
-  
+
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices, target_os, target_browsers,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     amazon_id, 'Amazon Prime Everywhere', 100.0, 10.0, 0.12, 'highest',
     sim_publishers, sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active', 'ecommerce'
   ),
   (
     amazon_id, 'Amazon Tech News Takeover', 50.0, 5.0, 0.11, 'dynamic',
     ARRAY['techcrunch.com', 'reddit.com', 'medium.com'],
     sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active', 'ecommerce'
   ),
   (
     amazon_id, 'Amazon News Display', 40.0, 4.0, 0.095, 'highest',
     ARRAY['cnn.com', 'nytimes.com'],
     ARRAY['banner_top', 'sidebar_right', 'native_feed'],
     sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '120 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '120 days', 'active', 'ecommerce'
   ),
   (
     amazon_id, 'Amazon Video Ads Global', 60.0, 6.0, 0.10, 'dynamic',
     sim_publishers, ARRAY['video_pre_roll', 'in_article_video'],
     sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '90 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '90 days', 'active', 'ecommerce'
   );
 
   -- ========================================================================
   -- GOOGLE: Tech-Focused (4 campaigns)
   -- ========================================================================
-  
+
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices, target_os, target_browsers,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     google_id, 'Google Cloud Blitz', 80.0, 8.0, 0.115, 'highest',
     sim_publishers, sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active', 'tech'
   ),
   (
     google_id, 'Google Search Ads', 60.0, 6.0, 0.105, 'dynamic',
     sim_publishers, sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active', 'tech'
   ),
   (
     google_id, 'Google Pixel Promo', 45.0, 4.5, 0.10, 'highest',
     ARRAY['techcrunch.com', 'reddit.com'],
     sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '120 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '120 days', 'active', 'tech'
   ),
   (
     google_id, 'Google YouTube Premium', 35.0, 3.5, 0.09, 'target_cpm',
     sim_publishers, ARRAY['video_pre_roll', 'in_article_video', 'interstitial'],
     sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '90 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '90 days', 'active', 'entertainment'
   );
 
   -- ========================================================================
   -- META: Social & VR Push (4 campaigns)
   -- ========================================================================
-  
+
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices, target_os, target_browsers,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     meta_id, 'Meta Quest 3 Launch', 70.0, 7.0, 0.11, 'highest',
     sim_publishers, sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active', 'tech'
   ),
   (
     meta_id, 'Instagram Reels Blast', 50.0, 5.0, 0.10, 'dynamic',
     sim_publishers, sim_ad_slots, sim_geos, ARRAY['mobile', 'tablet'],
     ARRAY['iOS', 'Android'], sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active', 'tech'
   ),
   (
     meta_id, 'Facebook Ads Manager', 40.0, 4.0, 0.095, 'highest',
     sim_publishers, ARRAY['banner_top', 'sidebar_right', 'native_feed'],
     sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '120 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '120 days', 'active', 'tech'
   ),
   (
     meta_id, 'WhatsApp Business Reach', 30.0, 3.0, 0.085, 'dynamic',
     sim_publishers, sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '90 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '90 days', 'active', 'tech'
   );
 
   -- ========================================================================
   -- COCA-COLA: Brand Awareness (3 campaigns)
   -- ========================================================================
-  
+
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices, target_os, target_browsers,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     coke_id, 'Coke Everywhere Campaign', 60.0, 6.0, 0.105, 'highest',
     sim_publishers, sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active', 'food_bev'
   ),
   (
     coke_id, 'Coke Zero Sugar Push', 40.0, 4.0, 0.095, 'dynamic',
     sim_publishers, sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active', 'food_bev'
   ),
   (
     coke_id, 'Coke Video Refresh', 35.0, 3.5, 0.09, 'highest',
     sim_publishers, ARRAY['video_pre_roll', 'in_article_video'],
     sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '120 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '120 days', 'active', 'food_bev'
   );
 
   -- ========================================================================
   -- APPLE: Premium Positioning (4 campaigns)
   -- ========================================================================
-  
+
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices, target_os, target_browsers,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     apple_id, 'iPhone 16 Pro Max Launch', 120.0, 12.0, 0.15, 'highest',
     sim_publishers, sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active', 'tech'
   ),
   (
     apple_id, 'Apple Watch Ultra Fitness', 70.0, 7.0, 0.12, 'dynamic',
     sim_publishers, sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active', 'tech'
   ),
   (
     apple_id, 'MacBook M4 Creative Pro', 80.0, 8.0, 0.13, 'highest',
     sim_publishers, ARRAY['banner_top', 'sidebar_right', 'native_feed'],
     sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '120 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '120 days', 'active', 'tech'
   ),
   (
     apple_id, 'Apple TV+ Originals Video', 50.0, 5.0, 0.11, 'dynamic',
     sim_publishers, ARRAY['video_pre_roll', 'in_article_video', 'interstitial'],
     sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '90 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '90 days', 'active', 'entertainment'
   );
 
   -- ========================================================================
   -- TESLA: EV Revolution (3 campaigns)
   -- ========================================================================
-  
+
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices, target_os, target_browsers,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     tesla_id, 'Tesla Model S Plaid', 90.0, 9.0, 0.125, 'highest',
     sim_publishers, sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active', 'automotive'
   ),
   (
     tesla_id, 'Tesla Cybertruck Reveal', 100.0, 10.0, 0.14, 'dynamic',
     sim_publishers, sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active', 'automotive'
   ),
   (
     tesla_id, 'Tesla Energy Solutions', 50.0, 5.0, 0.10, 'target_cpm',
     sim_publishers, ARRAY['banner_top', 'sidebar_right', 'native_feed'],
     sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '120 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '120 days', 'active', 'automotive'
   );
 
   -- ========================================================================
   -- NETFLIX: Streaming Domination (3 campaigns)
   -- ========================================================================
-  
+
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices, target_os, target_browsers,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     netflix_id, 'Netflix Originals Blitz', 80.0, 8.0, 0.115, 'highest',
     sim_publishers, sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active', 'entertainment'
   ),
   (
     netflix_id, 'Netflix Games Launch', 45.0, 4.5, 0.10, 'dynamic',
     sim_publishers, sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active', 'gaming'
   ),
   (
     netflix_id, 'Netflix Video Ads', 60.0, 6.0, 0.11, 'highest',
     sim_publishers, ARRAY['video_pre_roll', 'in_article_video', 'interstitial'],
     sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '120 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '120 days', 'active', 'entertainment'
   );
 
   -- ========================================================================
   -- SPOTIFY: Audio & Beyond (3 campaigns)
   -- ========================================================================
-  
+
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices, target_os, target_browsers,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     spotify_id, 'Spotify Premium Worldwide', 55.0, 5.5, 0.105, 'highest',
     sim_publishers, sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '365 days', 'active', 'entertainment'
   ),
   (
     spotify_id, 'Spotify Podcasts Push', 40.0, 4.0, 0.095, 'dynamic',
     sim_publishers, sim_ad_slots, sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '180 days', 'active', 'entertainment'
   ),
   (
     spotify_id, 'Spotify Wrapped Promo', 50.0, 5.0, 0.10, 'highest',
     sim_publishers, ARRAY['banner_top', 'native_feed', 'interstitial'],
     sim_geos, sim_devices, sim_os, sim_browsers,
-    NOW() - INTERVAL '1 day', NOW() + INTERVAL '90 days', 'active'
+    NOW() - INTERVAL '1 day', NOW() + INTERVAL '90 days', 'active', 'entertainment'
   );
 
 END $$;

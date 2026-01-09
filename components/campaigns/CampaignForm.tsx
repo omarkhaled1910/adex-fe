@@ -32,6 +32,11 @@ const geoOptions = ["US", "UK", "CA", "AU", "DE", "FR", "JP", "BR", "IN", "MX"];
 const deviceOptions = ["desktop", "mobile", "tablet"];
 const osOptions = ["windows", "macos", "ios", "android", "linux"];
 const browserOptions = ["chrome", "firefox", "safari", "edge"];
+const categoryOptions = [
+  "Technology", "Business", "Finance", "Health", "Education",
+  "Entertainment", "Gaming", "Sports", "News", "Lifestyle",
+  "Travel", "Food & Drink", "Art & Design", "Science", "Other"
+];
 const dayOptions = [
   { value: 0, label: "Sun" },
   { value: 1, label: "Mon" },
@@ -322,6 +327,36 @@ export function CampaignForm({
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Leave empty to target all regions
+                </p>
+              </div>
+
+              {/* Category Targeting */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium">
+                  Publisher Categories
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {categoryOptions.map((category) => (
+                    <Badge
+                      key={category}
+                      variant={
+                        formData.target_categories.includes(category)
+                          ? "default"
+                          : "outline"
+                      }
+                      className={`cursor-pointer transition-all ${
+                        formData.target_categories.includes(category)
+                          ? "bg-[var(--neon-pink)]/20 text-[var(--neon-pink)] border-[var(--neon-pink)]"
+                          : "hover:border-[var(--neon-pink)]/50"
+                      }`}
+                      onClick={() => toggleArrayItem("target_categories", category)}
+                    >
+                      {category}
+                    </Badge>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Target publishers by website category
                 </p>
               </div>
 

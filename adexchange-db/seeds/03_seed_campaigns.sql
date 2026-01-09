@@ -31,7 +31,7 @@ BEGIN
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     nike_id, 'Nike Air Max Spring 2026', 5.0, 0.2, 0.055,
@@ -42,7 +42,8 @@ BEGIN
     ARRAY['mobile', 'desktop'],
     NOW() - INTERVAL '7 days',
     NOW() + INTERVAL '30 days',
-    'active'
+    'active',
+    'sports'
   ),
   (
     nike_id, 'Nike Running Holiday Sale', 3.0, 0.15, 0.048,
@@ -53,14 +54,15 @@ BEGIN
     ARRAY['mobile', 'desktop', 'tablet'],
     NOW() - INTERVAL '3 days',
     NOW() + INTERVAL '14 days',
-    'active'
+    'active',
+    'sports'
   );
 
   -- Adidas campaigns
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     adidas_id, 'Adidas Originals Collection', 4.0, 0.18, 0.052,
@@ -71,14 +73,15 @@ BEGIN
     ARRAY['mobile', 'desktop'],
     NOW() - INTERVAL '5 days',
     NOW() + INTERVAL '25 days',
-    'active'
+    'active',
+    'sports'
   );
 
   -- Amazon campaigns
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     amazon_id, 'Amazon Prime Day 2026', 8.0, 0.35, 0.065,
@@ -89,7 +92,8 @@ BEGIN
     ARRAY['mobile', 'desktop', 'tablet'],
     NOW() - INTERVAL '2 days',
     NOW() + INTERVAL '60 days',
-    'active'
+    'active',
+    'ecommerce'
   ),
   (
     amazon_id, 'Amazon Web Services B2B', 5.0, 0.25, 0.058,
@@ -100,14 +104,15 @@ BEGIN
     ARRAY['desktop'],
     NOW() - INTERVAL '10 days',
     NOW() + INTERVAL '90 days',
-    'active'
+    'active',
+    'tech'
   );
 
   -- Google campaigns
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     google_id, 'Google Workspace Campaign', 10.0, 0.4, 0.070,
@@ -118,14 +123,15 @@ BEGIN
     ARRAY['desktop', 'tablet'],
     NOW() - INTERVAL '15 days',
     NOW() + INTERVAL '45 days',
-    'active'
+    'active',
+    'tech'
   );
 
   -- Meta campaigns
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     meta_id, 'Meta Quest VR Launch', 9.0, 0.38, 0.068,
@@ -136,14 +142,15 @@ BEGIN
     ARRAY['mobile', 'desktop'],
     NOW() - INTERVAL '4 days',
     NOW() + INTERVAL '30 days',
-    'active'
+    'active',
+    'tech'
   );
 
   -- Coca-Cola campaigns
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     coke_id, 'Coca-Cola Summer Refresh', 6.0, 0.28, 0.060,
@@ -154,14 +161,15 @@ BEGIN
     ARRAY['mobile', 'desktop', 'tablet'],
     NOW() - INTERVAL '8 days',
     NOW() + INTERVAL '60 days',
-    'active'
+    'active',
+    'food_bev'
   );
 
   -- Apple campaigns
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     apple_id, 'iPhone 16 Launch Campaign', 12.0, 0.5, 0.075,
@@ -172,7 +180,8 @@ BEGIN
     ARRAY['mobile', 'desktop', 'tablet'],
     NOW() - INTERVAL '1 day',
     NOW() + INTERVAL '90 days',
-    'active'
+    'active',
+    'tech'
   ),
   (
     apple_id, 'Apple Watch Fitness Challenge', 7.0, 0.3, 0.062,
@@ -183,14 +192,15 @@ BEGIN
     ARRAY['mobile'],
     NOW() - INTERVAL '6 days',
     NOW() + INTERVAL '45 days',
-    'active'
+    'active',
+    'tech'
   );
 
   -- Tesla campaigns
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     tesla_id, 'Tesla Model 3 Highland', 7.5, 0.32, 0.064,
@@ -201,14 +211,15 @@ BEGIN
     ARRAY['desktop', 'tablet'],
     NOW() - INTERVAL '12 days',
     NOW() + INTERVAL '75 days',
-    'active'
+    'active',
+    'automotive'
   );
 
   -- Netflix campaigns
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     netflix_id, 'Netflix Original Series Promo', 8.5, 0.36, 0.066,
@@ -219,14 +230,15 @@ BEGIN
     ARRAY['mobile', 'desktop', 'tablet'],
     NOW() - INTERVAL '9 days',
     NOW() + INTERVAL '21 days',
-    'active'
+    'active',
+    'entertainment'
   );
 
   -- Spotify campaigns
   INSERT INTO campaigns (
     advertiser_id, name, total_budget, daily_budget, max_bid, bid_strategy,
     target_publishers, target_ad_slots, target_geos, target_devices,
-    start_date, end_date, status
+    start_date, end_date, status, category
   ) VALUES
   (
     spotify_id, 'Spotify Premium Trial', 4.5, 0.22, 0.054,
@@ -237,7 +249,8 @@ BEGIN
     ARRAY['mobile', 'desktop'],
     NOW() - INTERVAL '5 days',
     NOW() + INTERVAL '30 days',
-    'active'
+    'active',
+    'entertainment'
   );
 
 END $$;

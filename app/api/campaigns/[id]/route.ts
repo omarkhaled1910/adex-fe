@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-
-// Demo advertiser ID (in production, this would come from auth)
-const DEMO_ADVERTISER_ID = "ff2c0776-a69d-4b79-9c29-8bf722d2719e";
+import { DEMO_ADVERTISER_ID } from "@/lib/config";
 
 export async function GET(
   request: NextRequest,
@@ -12,10 +10,10 @@ export async function GET(
     const { id } = await params;
 
     const sql = `
-      SELECT 
-        id, name, status, total_budget, daily_budget, spent_amount, 
-        max_bid, bid_strategy, target_geos, target_devices, target_os, 
-        target_browsers, start_date, end_date, max_impressions_per_user,
+      SELECT
+        id, name, status, total_budget, daily_budget, spent_amount,
+        max_bid, bid_strategy, target_geos, target_devices, target_os,
+        target_browsers, target_categories, start_date, end_date, max_impressions_per_user,
         max_impressions_per_day, active_hours, active_days,
         impressions_served, clicks, avg_ctr, created_at, updated_at
       FROM campaigns
@@ -66,6 +64,7 @@ export async function PATCH(
       "target_devices",
       "target_os",
       "target_browsers",
+      "target_categories",
       "max_impressions_per_user",
       "max_impressions_per_day",
       "active_hours",

@@ -81,10 +81,12 @@ export default function Dashboard() {
     });
 
     socket.on("auctions_sync", (syncedAuctions: Auction[]) => {
+      console.log("[Frontend] auctions_sync received:", syncedAuctions.length, "auctions");
       setAuctions(syncedAuctions);
     });
 
     socket.on("auction_created", (auction: Auction) => {
+      console.log("[Frontend] auction_created received:", auction.id, auction.status);
       setAuctions((prev) => [auction, ...prev].slice(0, 50));
       setStats((s) => ({ ...s, totalAuctions: s.totalAuctions + 1 }));
     });
@@ -114,6 +116,7 @@ export default function Dashboard() {
     });
 
     socket.on("auction_completed", (event: AuctionCompletedEvent) => {
+      console.log("[Frontend] auction_completed received:", event.auctionId, "winner:", event.winner?.amount);
       setAuctions((prev) =>
         prev.map((a) =>
           a.id === event.auctionId

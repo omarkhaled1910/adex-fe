@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       [hours]
     );
 
-    // Bid response time metrics
+    // Bid response time metrics from auction_bids table (where bids are actually saved)
     const bidResponseMetrics = await query<{
       avg: number;
       median: number;
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
         PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY response_time_ms) as p95,
         PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY response_time_ms) as p99,
         COUNT(*) as total_bids
-      FROM bids
+      FROM auction_bids
       WHERE created_at > NOW() - INTERVAL '1 hour' * $1
       `,
       [hours]

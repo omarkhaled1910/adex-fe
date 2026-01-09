@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-
-// Demo advertiser ID (in production, this would come from auth)
-const DEMO_ADVERTISER_ID = "ff2c0776-a69d-4b79-9c29-8bf722d2719e";
+import { DEMO_ADVERTISER_ID } from "@/lib/config";
 
 export async function GET(
   request: NextRequest,

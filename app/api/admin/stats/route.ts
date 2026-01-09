@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       [hours]
     );
 
-    // Get bid metrics
+    // Get bid metrics from auction_bids table (where bids are actually saved)
     const bidMetrics = await query<{
       total_bids: number;
       avg_bid_amount: number;
@@ -59,9 +59,9 @@ export async function GET(request: NextRequest) {
       `
       SELECT
         COUNT(*) as total_bids,
-        AVG(amount) as avg_bid_amount,
+        AVG(bid_amount) as avg_bid_amount,
         AVG(response_time_ms) as avg_response_time_ms
-      FROM bids
+      FROM auction_bids
       WHERE created_at > NOW() - INTERVAL '1 hour' * $1
       `,
       [hours]
@@ -103,15 +103,21 @@ export async function GET(request: NextRequest) {
       // Calculate derived stats
       completionRate:
         auctionMetrics[0]?.total_auctions > 0
-          ? (auctionMetrics[0].completed_auctions / auctionMetrics[0].total_auctions) * 100
+          ? (auctionMetrics[0].completed_auctions /
+              auctionMetrics[0].total_auctions) *
+            100
           : 0,
       bidRate:
         auctionMetrics[0]?.completed_auctions > 0
-          ? (auctionMetrics[0].with_bids_count / auctionMetrics[0].completed_auctions) * 100
+          ? (auctionMetrics[0].with_bids_count /
+              auctionMetrics[0].completed_auctions) *
+            100
           : 0,
       timeoutRate:
         auctionMetrics[0]?.completed_auctions > 0
-          ? (auctionMetrics[0].timeout_count / auctionMetrics[0].completed_auctions) * 100
+          ? (auctionMetrics[0].timeout_count /
+              auctionMetrics[0].completed_auctions) *
+            100
           : 0,
       avgBidsPerAuction:
         auctionMetrics[0]?.completed_auctions > 0

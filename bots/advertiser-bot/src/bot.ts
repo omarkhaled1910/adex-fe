@@ -1,38 +1,43 @@
 import { DatabaseService } from "./services/database.service";
 import { AmqpService } from "./services/amqp.service";
-import { BidStrategyService } from "./services/bid-strategy.service";
+import { BotSpawnerService } from "./services/bot-spawner.service";
 import { BotConfigManager } from "./config/bot.config";
-import { Campaign, BidRequest } from "./types/bot.types";
 
 /**
- * Advertiser Bot - AMQP-based bidding bot
+ * Advertiser Bot - Bot Spawner Architecture
  *
- * This bot:
+ * This bot now uses a spawner architecture:
  * 1. Connects to RabbitMQ
- * 2. Fetches active campaigns from database
- * 3. Creates per-campaign bid queues
- * 4. Consumes bid requests and responds with bids
+ * 2. Creates a BotSpawner that manages multiple bot instances
+ * 3. Each bot instance handles campaigns for a specific category
+ * 4. Fallback bot ensures at least one bot always bids
  */
 export class AdvertiserBot {
   private dbService: DatabaseService;
   private amqpService: AmqpService;
-  private bidStrategyService: BidStrategyService;
-  private campaigns: Map<string, Campaign> = new Map();
+  private botSpawner: BotSpawnerService;
   private config: ReturnType<typeof BotConfigManager.getConfig>;
-  private advertiserIds: string[] = [];
 
   constructor() {
     this.config = BotConfigManager.getConfig();
     this.amqpService = new AmqpService(this.config);
     this.dbService = new DatabaseService();
-    this.bidStrategyService = new BidStrategyService();
+    this.botSpawner = new BotSpawnerService(
+      this.dbService,
+      this.amqpService,
+      this.config.spawner,
+      {
+        participationRate: this.config.participationRate,
+        bidVariance: this.config.bidVariance,
+      }
+    );
   }
 
   /**
    * Start the bot
    */
   async start(): Promise<void> {
-    console.log("🚀 Starting Advertiser Bot...");
+    console.log("🚀 Starting Advertiser Bot (Spawner Mode)...");
 
     // Connect to RabbitMQ
     const connected = await this.amqpService.connect();
@@ -41,151 +46,11 @@ export class AdvertiserBot {
       process.exit(1);
     }
 
-    // Load advertiser IDs from config or database
-    if (this.config.advertiserIds.length > 0) {
-      this.advertiserIds = this.config.advertiserIds;
-    } else {
-      this.advertiserIds = await this.dbService.getAllAdvertiserIds();
-      console.log(`Found ${this.advertiserIds.length} advertisers in database`);
-    }
-
-    // Load campaigns
-    await this.loadCampaigns();
-
-    // Subscribe to auction events for tracking
-    this.amqpService.subscribeToAuctionEvents((event) => {
-      console.log("🔍 Auction event received");
-      this.handleAuctionEvent(event);
-    });
-
-    // Setup campaign queues and consumers
-    await this.setupCampaignConsumers();
-
-    // Set up periodic campaign refresh
-    setInterval(() => this.loadCampaigns(), 60000); // Refresh every minute
+    // Start the bot spawner
+    await this.botSpawner.start();
 
     console.log("✅ Bot started successfully");
-    console.log(
-      `📊 Managing ${this.campaigns.size} campaigns across ${this.advertiserIds.length} advertisers`
-    );
-  }
-
-  /**
-   * Load campaigns from database
-   */
-  private async loadCampaigns(): Promise<void> {
-    try {
-      const campaigns = await this.dbService.getActiveCampaigns(
-        this.advertiserIds
-      );
-
-      this.campaigns.clear();
-      for (const campaign of campaigns) {
-        this.campaigns.set(campaign.id, campaign);
-      }
-
-      console.log(`📦 Loaded ${this.campaigns.size} active campaigns`);
-    } catch (error) {
-      console.error("Failed to load campaigns:", error);
-    }
-  }
-
-  /**
-   * Setup consumers for each campaign
-   */
-  private async setupCampaignConsumers(): Promise<void> {
-    for (const campaign of this.campaigns.values()) {
-      await this.amqpService.createCampaignQueue(campaign.id);
-      await this.amqpService.consumeBidRequests(
-        campaign.id,
-        async (bidRequest) => {
-          await this.handleBidRequest(campaign.id, bidRequest);
-        }
-      );
-    }
-  }
-
-  /**
-   * Handle a bid request for a campaign
-   */
-  private async handleBidRequest(
-    campaignId: string,
-    bidRequest: BidRequest
-  ): Promise<void> {
-    const campaign = this.campaigns.get(campaignId);
-    if (!campaign) {
-      console.warn(`Campaign ${campaignId} not found`);
-      return;
-    }
-
-    // Check participation rate
-    const participationRate = this.config.participationRate;
-    if (Math.random() > participationRate) {
-      console.debug(
-        `Campaign ${campaignId} skipping auction ${bidRequest.auctionId}`
-      );
-      return;
-    }
-
-    // Check budget
-    if (campaign.total_budget - campaign.spent_amount <= 0) {
-      console.debug(`Campaign ${campaignId} budget exhausted`);
-      return;
-    }
-
-    // Generate bid response
-    const bidResponse = this.bidStrategyService.generateBidResponse(
-      campaign,
-      bidRequest,
-      bidRequest.auctionId
-    );
-
-    if (!bidResponse) {
-      console.debug(
-        `Campaign ${campaignId} no suitable bid for auction ${bidRequest.auctionId}`
-      );
-      return;
-    }
-
-    // Apply variance if configured
-    if (this.config.bidVariance > 0) {
-      const variance =
-        1 +
-        (Math.random() * this.config.bidVariance * 2 - this.config.bidVariance);
-      bidResponse.amount =
-        Math.round(bidResponse.amount * variance * 10000) / 10000;
-    }
-
-    // Publish bid response
-    const published = this.amqpService.publishBidResponse(bidResponse);
-    if (published) {
-      console.log(
-        `💰 Campaign ${campaignId.substring(0, 8)}... bid ${
-          bidResponse.amount
-        } for auction ${bidRequest.auctionId.substring(0, 12)}...`
-      );
-    }
-  }
-
-  /**
-   * Handle auction events (for tracking)
-   */
-  private handleAuctionEvent(event: any): void {
-    if (event.event === "auction_created") {
-      console.debug(`📢 Auction created: ${event.data.id}`);
-    } else if (event.event === "auction_completed") {
-      const { winner, auctionId } = event.data;
-      if (winner && this.campaigns.has(winner.campaignId)) {
-        console.log(
-          `🏆 Campaign ${winner.campaignId.substring(
-            0,
-            8
-          )}... won auction ${auctionId.substring(0, 12)}... with bid ${
-            winner.amount
-          }`
-        );
-      }
-    }
+    this.printStats();
   }
 
   /**
@@ -193,6 +58,7 @@ export class AdvertiserBot {
    */
   async stop(): Promise<void> {
     console.log("🛑 Stopping bot...");
+    await this.botSpawner.stop();
     await this.amqpService.close();
     await this.dbService.close();
     console.log("✅ Bot stopped");
@@ -202,13 +68,21 @@ export class AdvertiserBot {
    * Get bot statistics
    */
   getStats() {
-    return {
-      connected: this.amqpService.isConnected(),
-      campaigns: this.campaigns.size,
-      advertisers: this.advertiserIds.length,
-      participationRate: this.config.participationRate,
-      bidVariance: this.config.bidVariance,
-    };
+    return this.botSpawner.getStats();
+  }
+
+  /**
+   * Print current statistics
+   */
+  private printStats(): void {
+    const stats = this.getStats();
+    console.log("\n📊 Bot Spawner Statistics:");
+    console.log(`   Total Bots: ${stats.totalBots}`);
+    console.log(`   Bots by Category:`, stats.botsByCategory);
+    console.log(`   Bots by Priority:`, stats.botsByPriority);
+    console.log(`   Fallback Bot Active: ${stats.fallbackBotActive}`);
+    console.log(`   Total Bids Processed: ${stats.totalBidsProcessed}`);
+    console.log("");
   }
 }
 

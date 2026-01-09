@@ -1,0 +1,36 @@
+{
+  "name": "@adexch/sdk",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "AdEx Browser SDK for auction creation",
+  "main": "dist/adex-sdk.umd.js",
+  "module": "dist/adex-sdk.esm.js",
+  "browser": "dist/adex-sdk.umd.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "build:watch": "rollup -c -w",
+    "prepublishOnly": "npm run build",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "adex",
+    "adexchange",
+    "auction",
+    "sdk",
+    "browser"
+  ],
+  "author": "",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "rollup": "^4.28.1",
+    "rollup-plugin-dts": "^6.1.1",
+    "typescript": "^5.7.2"
+  }
+}

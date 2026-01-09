@@ -6,9 +6,17 @@ node_modules/
 
 
 adex-server
+packages/sdk/dist/
+packages/sdk/node_modules/
+
+bots/advertiser-bot/dist/
+bots/advertiser-bot/node_modules/
+
+
 # Testing
 coverage/
 *.lcov
+
 
 # Next.js
 .next/

@@ -1,15 +1,17 @@
 import { Pool, PoolClient } from "pg";
 
-// Database connection pool
+// Database connection pool - sized for high-concurrency load tests
+const poolSize = parseInt(process.env.DB_POOL_SIZE || "50");
 const pool = new Pool({
   host: process.env.DB_HOST || "localhost",
   port: parseInt(process.env.DB_PORT || "5432"),
   database: process.env.DB_NAME || "adexchange",
   user: process.env.DB_USER || process.env.USER,
   password: process.env.DB_PASSWORD || "",
-  max: 20,
+  max: poolSize,
+  min: 5, // Keep minimum connections warm
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 10000, // Increased for high load scenarios
 });
 
 // Test connection on startup

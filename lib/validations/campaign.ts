@@ -26,6 +26,7 @@ export const campaignSchema = z.object({
   target_devices: z.array(z.string()).default([]),
   target_os: z.array(z.string()).default([]),
   target_browsers: z.array(z.string()).default([]),
+  target_categories: z.array(z.string()).default([]),
   max_impressions_per_user: z.number().int().positive().nullable().optional(),
   max_impressions_per_day: z.number().int().positive().nullable().optional(),
   active_hours: z.array(z.number()).default([]),
@@ -49,6 +50,7 @@ export const campaignFormInputSchema = z.object({
   target_devices: z.array(z.string()).default([]),
   target_os: z.array(z.string()).default([]),
   target_browsers: z.array(z.string()).default([]),
+  target_categories: z.array(z.string()).default([]),
   max_impressions_per_user: z.string().optional(),
   max_impressions_per_day: z.string().optional(),
   active_hours: z.array(z.number()).default([]),
@@ -74,6 +76,7 @@ export function transformFormToApi(
     target_devices: input.target_devices,
     target_os: input.target_os,
     target_browsers: input.target_browsers,
+    target_categories: input.target_categories,
     max_impressions_per_user: input.max_impressions_per_user
       ? parseInt(input.max_impressions_per_user)
       : null,
@@ -162,6 +165,7 @@ export const defaultCampaignFormValues: CampaignFormInput = {
   target_devices: [],
   target_os: [],
   target_browsers: [],
+  target_categories: [],
   max_impressions_per_user: "",
   max_impressions_per_day: "",
   active_hours: [],

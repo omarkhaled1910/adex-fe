@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-
-// Demo advertiser ID (in production, this would come from auth)
-const DEMO_ADVERTISER_ID = "ff2c0776-a69d-4b79-9c29-8bf722d2719e";
+import { DEMO_ADVERTISER_ID } from "@/lib/config";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,10 +9,10 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
 
     let sql = `
-      SELECT 
-        id, name, status, total_budget, daily_budget, spent_amount, 
-        max_bid, bid_strategy, target_geos, target_devices, target_os, 
-        target_browsers, start_date, end_date, impressions_served, 
+      SELECT
+        id, name, status, total_budget, daily_budget, spent_amount,
+        max_bid, bid_strategy, target_geos, target_devices, target_os,
+        target_browsers, target_categories, start_date, end_date, impressions_served,
         clicks, avg_ctr, created_at, updated_at
       FROM campaigns
       WHERE advertiser_id = $1
@@ -56,6 +54,7 @@ export async function POST(request: NextRequest) {
       target_devices,
       target_os,
       target_browsers,
+      target_categories,
       max_impressions_per_user,
       max_impressions_per_day,
       active_hours,
@@ -73,12 +72,12 @@ export async function POST(request: NextRequest) {
 
     const sql = `
       INSERT INTO campaigns (
-        advertiser_id, name, total_budget, daily_budget, max_bid, 
-        bid_strategy, start_date, end_date, target_geos, target_devices, 
-        target_os, target_browsers, max_impressions_per_user, 
+        advertiser_id, name, total_budget, daily_budget, max_bid,
+        bid_strategy, start_date, end_date, target_geos, target_devices,
+        target_os, target_browsers, target_categories, max_impressions_per_user,
         max_impressions_per_day, active_hours, active_days, status
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
       )
       RETURNING *
     `;
@@ -96,6 +95,7 @@ export async function POST(request: NextRequest) {
       target_devices?.length > 0 ? target_devices : null,
       target_os?.length > 0 ? target_os : null,
       target_browsers?.length > 0 ? target_browsers : null,
+      target_categories?.length > 0 ? target_categories : null,
       max_impressions_per_user || null,
       max_impressions_per_day || null,
       active_hours?.length > 0 ? active_hours : null,

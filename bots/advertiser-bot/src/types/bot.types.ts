@@ -20,6 +20,8 @@ export interface Campaign {
   status: string;
   creatives: Creative[];
   avg_ctr?: number | null;
+  category?: string;
+  subcategory?: string;
 }
 
 export interface Creative {
@@ -58,6 +60,7 @@ export interface BidRequest {
     fingerprint?: string;
   };
   timestamp: number;
+  priorityBots?: string[];  // Categories that should bid first (e.g., ['video'])
 }
 
 export interface BidResponse {
@@ -76,6 +79,7 @@ export interface BotConfig {
   participationRate: number;
   bidVariance: number;
   prefetch: number;
+  spawner: SpawnerConfig;
 }
 
 export interface AdvertiserConfig {
@@ -85,4 +89,37 @@ export interface AdvertiserConfig {
   bidStrategy: "highest" | "dynamic" | "target_cpm" | "second_price";
   bidVariance: number;
   participationRate: number;
+}
+
+// ============================================================================
+// Bot Spawner Types
+// ============================================================================
+
+export type BotPriority = 'video' | 'standard' | 'fallback';
+
+export interface BotInstanceConfig {
+  id: string;              // Unique bot instance ID
+  category: string;        // Category this bot handles (e.g., 'video', 'gaming')
+  priority: BotPriority;   // Bot priority level
+  campaignIds: string[];   // Campaigns assigned to this bot
+  participationRate: number;
+  bidVariance: number;
+}
+
+export interface BotHealth {
+  botId: string;
+  category: string;
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  lastHeartbeat: number;
+  bidsProcessed: number;
+  errors: number;
+}
+
+export interface SpawnerConfig {
+  scanInterval: number;        // How often to rescan DB for new categories (ms)
+  healthCheckInterval: number; // How often to check bot health (ms)
+  maxBotsPerCategory: number;  // Max concurrent bots per category
+  fallbackBidMultiplier: number; // Conservative bid factor for fallback
+  priorityCategories: string[]; // Categories that always get priority (e.g., ['video'])
+  unhealthyThreshold: number;  // Heartbeat timeout before bot marked unhealthy (ms)
 }
